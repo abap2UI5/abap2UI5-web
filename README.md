@@ -1,35 +1,27 @@
-## abap2UI5-Setup
+## abap2UI5-web
 
 ### Functionality
 * Downporting with [abaplint](https://abaplint.org/)
 * Transpiling to JS with [abaplint/transpiler](https://github.com/abaplint/transpiler)
 * Running on Node.js with [open-abap](https://github.com/open-abap/express-icf-shim)
 * Service exposing via [express-icf-shim](https://github.com/open-abap/express-icf-shim)
-* Browser Tests with [Playwright](https://playwright.dev/)
-* Webpacking, Unit Testing...
 
 ### Tasks
-#### Downport & Transpile
+##### Downport & Transpile
 ```
 npm run init
 npm run build
 ```
-#### Run Unit Tests
+##### Run Unit Tests
 ```
 npm run unit
 ```
-#### Run Webservice
+##### Run Webservice
 ```
 npm run express
 ```
-#### Run Playwright Tests
-```
-npm run init_play
-npx playwright install --with-deps && npm i
-npx playwright test
-```
 
-#### Webpack Build Strategy
+##### Webpack Build Strategy
 
 1. Clone repositories into /src/
 2. Downport /src/ into /downport/
@@ -39,13 +31,14 @@ npx playwright test
 ```
 npm run webpack:build
 ```
-### Overview
-<img width="1077" alt="image" src="https://github.com/user-attachments/assets/4306fc51-a926-44e3-9572-e4f3fe0eb419">
 
 ### Demo
 Backend Running in Browser
 [https://abap2ui5.github.io/web-abap2ui5-samples/](https://abap2ui5.github.io/web-abap2ui5-samples/)
 
+### Limitations & Todo
+* Request handling fails in open-abap [Issue #926](https://github.com/open-abap/open-abap-core/issues/926)
+* Frontend files are outdated compared to the current backend implementation, update Webpacked frontend
 
 ### Credits
-* abaplint, open-abap, express-icf-shim etc. all by [larshp](https://github.com/larshp)
+* abaplint, open-abap, express-icf-shim, webpacking by [larshp](https://github.com/larshp)
