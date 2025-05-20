@@ -22,7 +22,7 @@ jobs:
     - run: npm run webpack:build
     - name: deploy to web-abap2ui5-samples
       uses: peaceiris/actions-gh-pages@v4
-      if: github.ref == 'refs/heads/main' && github.repository == 'abap2UI5/setup'
+      if: github.ref == 'refs/heads/main' && github.repository == 'abap2UI5/abap2UI5-web'
       with:
         deploy_key: ${{ secrets.DEPLOY_WEB }}
         external_repository: abap2UI5/web-abap2ui5-samples
