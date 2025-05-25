@@ -37,8 +37,7 @@ Backend Running in Browser
 [https://abap2ui5.github.io/web-abap2ui5-samples/](https://abap2ui5.github.io/web-abap2ui5-samples/)
 
 ### Limitations & Todo
-* Request handling fails in open-abap [Issue #926](https://github.com/open-abap/open-abap-core/issues/926)
-* Frontend files are outdated compared to the current backend implementation, update Webpacked frontend
+* Frontend files are outdated, update Webpacked frontend
 
 ### Credits
 * abaplint, open-abap, express-icf-shim, webpacking by [larshp](https://github.com/larshp)
