@@ -36,8 +36,14 @@ npm run webpack:build
 Backend Running in Browser
 [https://abap2ui5.github.io/web-abap2ui5-samples/](https://abap2ui5.github.io/web-abap2ui5-samples/)
 
+### CI
+The `build_web` workflow runs daily: it clones [abap2UI5](https://github.com/abap2UI5/abap2UI5) and the top-level apps of [samples](https://github.com/abap2UI5/samples), runs downport, transpile, unit tests and the webpack build, and deploys the result to [web-abap2ui5-samples](https://github.com/abap2UI5/web-abap2ui5-samples) (GitHub Pages). Note: GitHub disables scheduled workflows after 60 days without repository activity — re-enable it under Actions if the demo stops updating.
+
+`@abaplint/cli` is pinned to the version used by abap2UI5 itself, since the downport result must pass the same syntax check.
+
 ### Limitations & Todo
 * Frontend files are outdated, update Webpacked frontend
+* Samples in subfolders of the samples repository (system samples, launchpad samples) are excluded — they require a real SAP system and cannot be transpiled
 
 ### Credits
 * abaplint, open-abap, express-icf-shim, webpacking by [larshp](https://github.com/larshp)
