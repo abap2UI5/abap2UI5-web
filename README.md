@@ -1,4 +1,4 @@
-## abap2UI5-web
+## web-abap2UI5
 
 ### Functionality
 * Downporting with [abaplint](https://abaplint.org/)
@@ -34,10 +34,10 @@ npm run webpack:build
 
 ### Demo
 Backend Running in Browser
-[https://abap2ui5.github.io/web-abap2ui5-samples/](https://abap2ui5.github.io/web-abap2ui5-samples/)
+[https://abap2ui5.github.io/web-abap2UI5-build/](https://abap2ui5.github.io/web-abap2UI5-build/)
 
 ### CI
-The `build_web` workflow runs daily: it clones [abap2UI5](https://github.com/abap2UI5/abap2UI5) and the top-level apps of [samples](https://github.com/abap2UI5/samples), runs downport, transpile, unit tests and the webpack build, and deploys the result to [web-abap2ui5-samples](https://github.com/abap2UI5/web-abap2ui5-samples) (GitHub Pages). Note: GitHub disables scheduled workflows after 60 days without repository activity — re-enable it under Actions if the demo stops updating.
+The `build_web` workflow runs daily: it clones [abap2UI5](https://github.com/abap2UI5/abap2UI5) and the top-level apps of [samples](https://github.com/abap2UI5/samples), runs downport, transpile, unit tests and the webpack build, and deploys the result to [web-abap2UI5-build](https://github.com/abap2UI5/web-abap2UI5-build) (GitHub Pages). Note: GitHub disables scheduled workflows after 60 days without repository activity — re-enable it under Actions if the demo stops updating.
 
 `@abaplint/cli` is pinned to the version used by abap2UI5 itself, since the downport result must pass the same syntax check.
 

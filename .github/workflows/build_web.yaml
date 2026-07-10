@@ -20,12 +20,12 @@ jobs:
     - run: npm run clone
     - run: npm run build && node output/index.mjs
     - run: npm run webpack:build
-    - name: deploy to web-abap2ui5-samples
+    - name: deploy to web-abap2UI5-build
       uses: peaceiris/actions-gh-pages@v4
       if: github.ref == 'refs/heads/main' && github.repository == 'abap2UI5/web-abap2UI5'
       with:
         deploy_key: ${{ secrets.DEPLOY_WEB }}
-        external_repository: abap2UI5/web-abap2ui5-samples
+        external_repository: abap2UI5/web-abap2UI5-build
         user_name: 'github-actions[bot]'
         user_email: 'github-actions[bot]@users.noreply.github.com'
         publish_branch: main
