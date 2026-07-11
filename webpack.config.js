@@ -47,7 +47,15 @@ module.exports = ({mode} = {mode: "development"}) => ({
   },
   module: {
     rules: [
-    ]
+    ],
+    parser: {
+      javascript: {
+        // Bundle the sequential await import() calls of output/init.mjs
+        // eagerly into the main bundle instead of emitting one async chunk
+        // per transpiled class, while keeping their evaluation order.
+        dynamicImportMode: "eager",
+      },
+    },
   },
   plugins: [
     new HtmlWebpackPlugin({
