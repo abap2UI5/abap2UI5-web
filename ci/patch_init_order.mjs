@@ -4,14 +4,15 @@
 // of these modules use top-level await, which makes them async modules: the
 // ECMAScript spec only guarantees that async sibling modules *start* in
 // order, not that each one *finishes* before the next one starts. Cross-class
-// references made during class_constructor execution (e.g. Z2UI5_CL_UTIL
-// reading CL_ABAP_OBJECTDESCR=>PUBLIC) go through the abap.Classes registry
+// references made during class_constructor execution (e.g.
+// Z2UI5_CL_ABAP2UI5_CONTEXT reading CL_ABAP_CHAR_UTILITIES=>NEWLINE) go
+// through the abap.Classes registry
 // and are invisible to the module graph, so they rely on sibling completion
 // order. Node's scheduler happens to evaluate the modules in a working
 // order, but webpack's async-module runtime does not — in the browser bundle
-// Z2UI5_CL_UTIL's class_constructor runs before CL_ABAP_OBJECTDESCR is
-// registered, which crashes the GitHub page with
-// "Cannot read properties of undefined (reading 'public')".
+// Z2UI5_CL_ABAP2UI5_CONTEXT's class_constructor runs before its dependencies
+// (e.g. CL_ABAP_CHAR_UTILITIES) are registered, which crashes the GitHub page
+// with "Cannot read properties of undefined".
 //
 // Rewriting the static imports into sequential top-level `await import(...)`
 // calls forces each module (including all of its own top-level awaits) to

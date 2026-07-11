@@ -46,7 +46,7 @@ if (!file) {
 
 let src = readFileSync(file, "utf8");
 
-const anchor = "    DATA(lr_ref) = z2ui5_cl_util=>unassign_object( lr_val ).";
+const anchor = "    DATA(lr_ref) = z2ui5_cl_abap2ui5_context=>unassign_object( lr_val ).";
 const guard = `
     " Patch for the transpiled all-in-browser build (ci/patch_diss_oref.mjs):
     " never dissolve into abap2UI5 framework objects. The open-abap runtime
