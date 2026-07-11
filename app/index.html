@@ -7,12 +7,10 @@
     <link rel="icon" href="data:," />
 </head>
 <body>
-    <!-- Replaced at runtime: web.mjs boots the transpiled ABAP backend and
+    <!-- Deliberately empty: web.mjs boots the transpiled ABAP backend and
          document.writes the frontend HTML served by z2ui5_cl_http_handler.
-         While the backend starts, only the product name is shown - no boot
-         message, so the page reads as abap2UI5 from the first paint on. -->
-    <div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
-                font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
-                font-size:2rem;font-weight:600;color:#0070f2;">abap2UI5</div>
+         Any splash content painted here would flash for a split second
+         before document.write wipes it, so the page stays blank until the
+         real frontend arrives. -->
 </body>
 </html>
