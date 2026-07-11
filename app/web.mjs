@@ -1,10 +1,8 @@
-// init.mjs (not _init.mjs): it loads every transpiled module with a
-// sequential literal await import(), which guarantees the class registration
-// order. _init.mjs uses static imports whose top-level awaits interleave, so
-// class constructors can run before their dependencies are registered
-// (abap.Classes['CL_ABAP_OBJECTDESCR'] undefined in z2ui5_cl_util). Webpack
-// still produces a single bundle via dynamicImportMode: "eager".
-import {initializeABAP} from "../output/init.mjs";
+// _init.mjs is rewritten by ci/patch_init_order.mjs (npm run transpile) to
+// load every transpiled module with a sequential await import(), which
+// guarantees the class registration order in every ESM runtime and bundler.
+// Webpack still produces a single bundle via dynamicImportMode: "eager".
+import {initializeABAP} from "../output/_init.mjs";
 
 // Boot sequence of the all-in-browser demo:
 // 1. initialize the transpiled ABAP backend (sql.js database + abap runtime)
