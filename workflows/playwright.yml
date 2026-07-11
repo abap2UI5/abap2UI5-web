@@ -16,6 +16,8 @@ jobs:
         node-version: lts/*
     - name: Install dependencies
       run: npm run init && npm run build
+    - name: Build webpack browser bundle
+      run: npm run webpack:build
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps && npm i
     - name: Run Playwright tests

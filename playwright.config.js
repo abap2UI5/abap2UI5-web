@@ -36,16 +36,28 @@ module.exports = defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      testIgnore: /web\.spec\.js/,
     },
 
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
+      testIgnore: /web\.spec\.js/,
     },
 
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
+      testIgnore: /web\.spec\.js/,
+    },
+
+    /* Webpack browser build (the GitHub Pages demo): the transpiled backend
+       runs inside the browser; ./build is served by srv/serve_build.mjs.
+       Requires `npm run webpack:build` beforehand. */
+    {
+      name: 'chromium-web',
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:8081' },
+      testMatch: /web\.spec\.js/,
     },
 
     /* Test against mobile viewports. */
@@ -70,10 +82,17 @@ module.exports = defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-   webServer: {
-     command: 'npm run express',
-     url: 'http://localhost:3000',
-     reuseExistingServer: !process.env.CI,
-   },
+   webServer: [
+     {
+       command: 'npm run express',
+       url: 'http://localhost:3000',
+       reuseExistingServer: !process.env.CI,
+     },
+     {
+       command: 'npm run serve:build',
+       url: 'http://localhost:8081',
+       reuseExistingServer: !process.env.CI,
+     },
+   ],
 });
 
