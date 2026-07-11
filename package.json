@@ -14,7 +14,7 @@
     "downport": "rm -rf downport && cp -r src downport && abaplint --fix ./ci/abaplint-downport.jsonc && npm run syfixes",
     "downport_samples": "rm -rf downport && cp -r src downport && abaplint --fix ./ci/abaplint-downport-samples.jsonc && npm run syfixes",
     "unit": "echo RUNNING && node output/index.mjs",
-    "transpile": "rm -rf output && cp srv/*.abap downport && abap_transpile ./ci/abap_transpile.json",
+    "transpile": "rm -rf output && cp srv/*.abap downport && abap_transpile ./ci/abap_transpile.json && node ci/patch_init_order.mjs",
     "test": "npm run downport && npm run transpile && npm run unit",
     "cleanup": "rm -rf input && rm -rf output",
     "express": "node srv/express.mjs",
