@@ -65,5 +65,11 @@ module.exports = ({mode} = {mode: "development"}) => ({
       process: 'process/browser',
       Buffer: ['buffer', 'Buffer'],
     }),
+    // The transpiled output loads every module via top-level `await import()`
+    // (see ci/patch_init_order.mjs), which webpack would otherwise split into
+    // one tiny async chunk per ABAP object — 1700+ files and ~1000 requests
+    // on GitHub Pages. Merging everything into a single chunk keeps the
+    // deterministic initialization order but ships one bundle.
+    new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }),
   ],
 });
