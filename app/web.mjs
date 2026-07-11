@@ -103,6 +103,26 @@ try {
   // protection - there is no network backend in this demo. Strip it.
   html = html.replace(/<meta http-equiv="Content-Security-Policy"[\s\S]*?\/>/i, "");
 
+  // UI5's ResizeHandler (and only it) still registers a window "unload"
+  // listener, which Chrome's unload deprecation rejects with a console
+  // violation ("Permissions policy violation: unload is not allowed in this
+  // document"). Rewrite window-level unload listeners to the recommended
+  // "pagehide" before the UI5 bootstrap runs - same cleanup moment, no
+  // violation. Must be inline in the written HTML: this module's scope does
+  // not survive into UI5's synchronous bootstrap parsing order otherwise.
+  const unloadShim =
+    "<script>(function () {" +
+    "var add = window.addEventListener.bind(window);" +
+    "var remove = window.removeEventListener.bind(window);" +
+    "window.addEventListener = function (type, listener, options) {" +
+    "return add(type === 'unload' ? 'pagehide' : type, listener, options);" +
+    "};" +
+    "window.removeEventListener = function (type, listener, options) {" +
+    "return remove(type === 'unload' ? 'pagehide' : type, listener, options);" +
+    "};" +
+    "})();</" + "script>";
+  html = html.replace(/<script[^>]*\bid="sap-ui-bootstrap"/i, unloadShim + "$&");
+
   // document.open() is a no-op while the initial document is still being
   // parsed - wait until the loader page finished parsing.
   if (document.readyState === "loading") {
