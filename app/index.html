@@ -7,37 +7,10 @@
     <link rel="icon" href="data:," />
 </head>
 <body>
-    <!-- Replaced at runtime: web.mjs boots the transpiled ABAP backend and
+    <!-- Deliberately empty: web.mjs boots the transpiled ABAP backend and
          document.writes the frontend HTML served by z2ui5_cl_http_handler.
-         The first paint is deliberately empty: any immediate splash content
-         flashes for a split second before document.write wipes it. The
-         spinner only fades in after the animation delay, so fast boots swap
-         straight to the app without anything ever becoming visible. -->
-    <style>
-        #boot-spinner {
-            position: fixed;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            animation: boot-fade-in 0.4s ease-in 0.6s forwards;
-        }
-        #boot-spinner div {
-            width: 2rem;
-            height: 2rem;
-            border: 0.2rem solid rgba(0, 112, 242, 0.2);
-            border-top-color: #0070f2;
-            border-radius: 50%;
-            animation: boot-rotate 0.8s linear infinite;
-        }
-        @keyframes boot-fade-in {
-            to { opacity: 1; }
-        }
-        @keyframes boot-rotate {
-            to { transform: rotate(360deg); }
-        }
-    </style>
-    <div id="boot-spinner"><div></div></div>
+         Any splash content painted here would flash for a split second
+         before document.write wipes it, so the page stays blank until the
+         real frontend arrives. -->
 </body>
 </html>
