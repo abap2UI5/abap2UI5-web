@@ -40,7 +40,7 @@
     "@abaplint/runtime": "^2.13.37",
     "@abaplint/transpiler-cli": "^2.13.37",
     "@playwright/test": "^1.61.1",
-    "@types/node": "^22.15.19",
+    "@types/node": "^26.1.1",
     "buffer": "^6.0.3",
     "copy-webpack-plugin": "^12.0.2",
     "express": "^4.21.2",
