@@ -39,7 +39,7 @@
     "@abaplint/database-sqlite": "^2.11.78",
     "@abaplint/runtime": "^2.13.37",
     "@abaplint/transpiler-cli": "^2.13.37",
-    "@playwright/test": "^1.52.0",
+    "@playwright/test": "^1.61.1",
     "@types/node": "^22.15.19",
     "buffer": "^6.0.3",
     "copy-webpack-plugin": "^12.0.2",
