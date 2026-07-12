@@ -51,6 +51,6 @@
     "webpack-dev-server": "^5.2.1"
   },
   "dependencies": {
-    "npm-check-updates": "^17.1.18"
+    "npm-check-updates": "^22.2.9"
   }
 }
