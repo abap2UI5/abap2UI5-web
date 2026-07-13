@@ -4,10 +4,10 @@
   "version": "1.0.0",
   "description": "Developing UI5 Apps purely in ABAP.",
   "scripts": {
-    "clone1": "rm -rf abap2UI5 && git clone --depth=1 https://github.com/abap2UI5/abap2UI5 && cp -r abap2UI5/src src && cp src/99/02/z2ui5_cl_pop_to_select.clas.abap src/99/02/z2ui5_cl_pop_to_select.clas.xml src/02/ && rm -rf src/99",
+    "clone1": "rm -rf abap2UI5 && git clone --depth=1 https://github.com/abap2UI5/abap2UI5 && cp -r abap2UI5/src src && cp src/99/02/z2ui5_cl_pop_*.clas.abap src/99/02/z2ui5_cl_pop_*.clas.xml src/02/ && rm -rf src/99",
     "clone2": "rm -rf abap2UI5-samples && git clone --depth=1 --branch cloud https://github.com/abap2UI5/samples abap2UI5-samples && mkdir -p src/samples && cp -r abap2UI5-samples/src/. src/samples",
     "clone": "rm -rf src && npm run clone1 && npm run clone2",
-    "init_abap2ui5": "rm -rf src && rm -rf abap2UI5 &&  mkdir src && git clone --depth=1 https://github.com/abap2UI5/abap2UI5.git && cp -r abap2UI5/src/* src/ && cp src/99/02/z2ui5_cl_pop_to_select.clas.abap src/99/02/z2ui5_cl_pop_to_select.clas.xml src/02/ && rm -rf src/99",
+    "init_abap2ui5": "rm -rf src && rm -rf abap2UI5 &&  mkdir src && git clone --depth=1 https://github.com/abap2UI5/abap2UI5.git && cp -r abap2UI5/src/* src/ && cp src/99/02/z2ui5_cl_pop_*.clas.abap src/99/02/z2ui5_cl_pop_*.clas.xml src/02/ && rm -rf src/99",
     "init_samples": "rm -rf abap2UI5-samples && git clone --depth=1 --branch cloud https://github.com/abap2UI5/samples abap2UI5-samples && mkdir -p src/samples && cp -r abap2UI5-samples/src/. src/samples",
     "init": "npm run init_abap2ui5 && npm run init_samples",
     "syfixes": "find . -type f -name '*.abap' -exec sed -i -e 's/ RAISE EXCEPTION TYPE cx_sy_itab_line_not_found/ ASSERT 1 = 0/g' {} + ",
