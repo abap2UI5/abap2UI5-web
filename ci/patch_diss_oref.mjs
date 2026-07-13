@@ -46,7 +46,9 @@ if (!file) {
 
 let src = readFileSync(file, "utf8");
 
-const anchor = "    DATA(lr_ref) = z2ui5_cl_abap2ui5_context=>unassign_object( lr_val ).";
+// Upstream renamed Z2UI5_CL_ABAP2UI5_CONTEXT to Z2UI5_CL_A2UI5_CONTEXT
+// (2026-07); accept both spellings so the patch survives either state.
+const anchorRe = /^( *)DATA\(lr_ref\) = z2ui5_cl_(?:abap2ui5|a2ui5)_context=>unassign_object\( lr_val \)\.$/m;
 const guard = `
     " Patch for the transpiled all-in-browser build (ci/patch_diss_oref.mjs):
     " never dissolve into abap2UI5 framework objects. The open-abap runtime
@@ -67,11 +69,11 @@ if (methodStart === -1 || methodEnd === -1) {
   throw new Error("patch_diss_oref: METHOD diss_oref not found - upstream source changed?");
 }
 const method = src.slice(methodStart, methodEnd);
-if (!method.includes(anchor)) {
+if (!anchorRe.test(method)) {
   throw new Error("patch_diss_oref: anchor line not found in diss_oref - upstream source changed?");
 }
 
-const patched = method.replace(anchor, anchor + "\n" + guard);
+const patched = method.replace(anchorRe, (line) => line + "\n" + guard);
 src = src.slice(0, methodStart) + patched + src.slice(methodEnd);
 
 writeFileSync(file, src);
