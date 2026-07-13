@@ -67,6 +67,10 @@ module.exports = ({mode} = {mode: "development"}) => ({
         { from: './node_modules/sql.js/dist/sql-wasm.wasm', to: "./" },
         { from: './node_modules/sql.js/dist/sql-wasm-debug.wasm', to: "./" },
         { from: './node_modules/sql.js/dist/sql-wasm-debug.js', to: "./" },
+        // sql.js >= 1.13 ships a dedicated browser build; the browser entry
+        // of @abaplint/database-sqlite fetches sql-wasm-browser.wasm.
+        { from: './node_modules/sql.js/dist/sql-wasm-browser.wasm', to: "./" },
+        { from: './node_modules/sql.js/dist/sql-wasm-browser-debug.wasm', to: "./" },
         // The z2ui5 frontend manifest includes css/style.css; without the
         // file every boot of the GitHub Pages demo logs a 404.
         { from: './app/css/style.css', to: "./css/style.css" },
