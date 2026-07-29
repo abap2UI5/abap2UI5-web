@@ -5,12 +5,16 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyPlugin = require("copy-webpack-plugin");
 const webpack = require("webpack");
 
-module.exports = ({mode} = {mode: "development"}) => ({
+module.exports = (env = {mode: "development"}) => ({
   entry: {
     "app": "./app/web.mjs",
   },
-  mode,
-  devtool: "nosources-source-map",
+  mode: env.mode,
+  // The source map alone adds ~2 MB to every GitHub Pages deploy, so it is
+  // opt-in for builds (WEB_SOURCEMAP=1) and always on for the dev server.
+  devtool: env.WEBPACK_SERVE || process.env.WEB_SOURCEMAP
+    ? "nosources-source-map"
+    : false,
   experiments: {
     topLevelAwait: true
   },
@@ -65,12 +69,11 @@ module.exports = ({mode} = {mode: "development"}) => ({
     new CopyPlugin({
       patterns: [
         { from: './node_modules/sql.js/dist/sql-wasm.wasm', to: "./" },
-        { from: './node_modules/sql.js/dist/sql-wasm-debug.wasm', to: "./" },
-        { from: './node_modules/sql.js/dist/sql-wasm-debug.js', to: "./" },
         // sql.js >= 1.13 ships a dedicated browser build; the browser entry
         // of @abaplint/database-sqlite fetches sql-wasm-browser.wasm.
+        // The -debug variants of both wasm files (~740 KB each) are never
+        // referenced by the bundle and are not copied into the deploy.
         { from: './node_modules/sql.js/dist/sql-wasm-browser.wasm', to: "./" },
-        { from: './node_modules/sql.js/dist/sql-wasm-browser-debug.wasm', to: "./" },
         // The z2ui5 frontend manifest includes css/style.css; without the
         // file every boot of the GitHub Pages demo logs a 404.
         { from: './app/css/style.css', to: "./css/style.css" },

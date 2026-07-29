@@ -21,7 +21,7 @@ env:
 jobs:
   build_web:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20 # browser smoke needs the Chromium download on top of the build
     steps:
     - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
@@ -57,6 +57,16 @@ jobs:
       if: steps.upstream.outputs.changed == 'true'
     - run: npm run webpack:build
       if: steps.upstream.outputs.changed == 'true'
+    # Browser smoke against the freshly built site (tests/web.spec.js via the
+    # chromium-web project: backend boots in the browser, UI5 loads, the first
+    # roundtrip answers). A blank page must never reach the deploy step —
+    # before this gate the site deployed completely untested.
+    - name: Install Playwright Chromium
+      if: steps.upstream.outputs.changed == 'true'
+      run: npx playwright install --with-deps chromium
+    - name: Smoke test the webpack build in a real browser
+      if: steps.upstream.outputs.changed == 'true'
+      run: npx playwright test --project=chromium-web
     - name: Write build stamp
       if: steps.upstream.outputs.changed == 'true'
       run: printf '%s' "${{ steps.upstream.outputs.stamp }}" > build/build-stamp.txt
