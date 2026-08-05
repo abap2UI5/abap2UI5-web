@@ -9,7 +9,7 @@
 ### Tasks
 ##### Downport & Transpile
 ```
-npm run init
+npm run clone
 npm run build
 ```
 ##### Run Unit Tests
