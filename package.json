@@ -7,9 +7,6 @@
     "clone1": "rm -rf abap2UI5 && git clone --depth=1 https://github.com/abap2UI5/abap2UI5 && cp -r abap2UI5/src src && cp src/99/02/z2ui5_cl_pop_*.clas.abap src/99/02/z2ui5_cl_pop_*.clas.xml src/02/ && ( cp src/99/z2ui5_cl_xml_view*.clas.* src/02/ 2>/dev/null || true ) && rm -rf src/99",
     "clone2": "rm -rf abap2UI5-samples && git clone --depth=1 --branch cloud https://github.com/abap2UI5/samples abap2UI5-samples && mkdir -p src/samples && cp -r abap2UI5-samples/src/. src/samples",
     "clone": "rm -rf src && npm run clone1 && npm run clone2",
-    "init_abap2ui5": "rm -rf src && rm -rf abap2UI5 &&  mkdir src && git clone --depth=1 https://github.com/abap2UI5/abap2UI5.git && cp -r abap2UI5/src/* src/ && cp src/99/02/z2ui5_cl_pop_*.clas.abap src/99/02/z2ui5_cl_pop_*.clas.xml src/02/ && ( cp src/99/z2ui5_cl_xml_view*.clas.* src/02/ 2>/dev/null || true ) && rm -rf src/99",
-    "init_samples": "rm -rf abap2UI5-samples && git clone --depth=1 --branch cloud https://github.com/abap2UI5/samples abap2UI5-samples && mkdir -p src/samples && cp -r abap2UI5-samples/src/. src/samples",
-    "init": "npm run init_abap2ui5 && npm run init_samples",
     "syfixes": "find . -type f -name '*.abap' -exec sed -i -e 's/ RAISE EXCEPTION TYPE cx_sy_itab_line_not_found/ ASSERT 1 = 0/g' {} + ",
     "downport": "rm -rf downport && cp -r src downport && node ci/patch_diss_oref.mjs && abaplint --fix ./ci/abaplint-downport.jsonc && npm run syfixes",
     "downport_samples": "rm -rf downport && cp -r src downport && node ci/patch_diss_oref.mjs && abaplint --fix ./ci/abaplint-downport-samples.jsonc && npm run syfixes",
@@ -21,9 +18,7 @@
     "serve:build": "node srv/serve_build.mjs",
     "webpack:run": "webpack serve --mode development --env development",
     "webpack:build": "webpack --mode development --env development",
-    "build": "npm ci && npm run downport && npm run transpile && rm -rf src",
-    "express_play": "node abap2UI5-transpiled/srv/express.mjs",
-    "init_play": "git clone https://github.com/abap2UI5/abap2UI5-transpiled && cd abap2UI5-transpiled && npm run init && npm run build && cd .."
+    "build": "npm ci && npm run downport && npm run transpile && rm -rf src"
   },
   "repository": {
     "type": "git",
@@ -35,7 +30,7 @@
   },
   "homepage": "https://github.com/abap2UI5/web-abap2UI5#readme",
   "devDependencies": {
-    "@abaplint/cli": "2.119.66",
+    "@abaplint/cli": "2.120.3",
     "@abaplint/database-sqlite": "^2.13.40",
     "@abaplint/runtime": "^2.13.40",
     "@abaplint/transpiler-cli": "^2.13.40",
