@@ -32,8 +32,18 @@ jobs:
     - name: Check for upstream changes
       id: upstream
       run: |
-        core=$(git ls-remote https://github.com/abap2UI5/abap2UI5 refs/heads/main | cut -f1)
-        samples=$(git ls-remote https://github.com/abap2UI5/samples refs/heads/cloud | cut -f1)
+        set -euo pipefail
+        # --exit-code together with pipefail: a branch that is gone upstream
+        # fails the job here instead of stamping an empty field. That is
+        # exactly how the samples half went blind - it asked for a `cloud`
+        # branch the samples repository does not have, so `git ls-remote`
+        # printed nothing and still exited 0. The stamp then read
+        # `<core>--<sha>` and the cron stopped noticing samples changes
+        # altogether.
+        core=$(git ls-remote --exit-code https://github.com/abap2UI5/abap2UI5 refs/heads/main | cut -f1)
+        # `npm run clone2` clones the samples default branch, so the stamp has
+        # to follow the same branch the build actually consumes
+        samples=$(git ls-remote --exit-code https://github.com/abap2UI5/samples refs/heads/main | cut -f1)
         stamp="${core}-${samples}-${GITHUB_SHA}"
         echo "stamp=$stamp" >> "$GITHUB_OUTPUT"
         last=$(curl -fsSL https://raw.githubusercontent.com/abap2UI5/web-abap2UI5-build/main/build-stamp.txt || echo none)
