@@ -64,6 +64,7 @@ The deploy is a **production** webpack build. Two Terser defaults have to be tur
 
 ### Limitations & Todo
 * Samples in subfolders of the samples repository (system samples, launchpad samples) are excluded — they require a real SAP system and cannot be transpiled
+* `src/99` of abap2UI5 (the frozen legacy package) is not part of the build. `clone1` drops it. Should a sample ever need one of those classes again, the fix belongs in the sample — `src/99` is on abap2UI5's removal plan and will not be there forever
 * A known upstream [@abaplint/transpiler](https://github.com/abaplint/transpiler) issue makes `check_on_init( )` always false in the transpiled backend (interface attributes read through an interface-typed reference resolve to a missing JS property), so backend-built view XML may not be returned even though the roundtrip succeeds
 
 ### Credits
