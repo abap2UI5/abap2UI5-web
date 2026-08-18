@@ -13,11 +13,6 @@ permissions:
   contents: read
   issues: write  # to report failed scheduled runs
 
-env:
-  # peaceiris/actions-gh-pages@v4 still ships with node20; force the runner to
-  # execute it on node24 until upstream publishes a node24-based release.
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
-
 jobs:
   build_web:
     runs-on: ubuntu-latest
@@ -139,8 +134,20 @@ jobs:
     # SHA-pinned like every other action here. This is the step that holds
     # DEPLOY_WEB and writes to the published repository, so it was the last
     # one that should have been tracking a mutable tag.
+    #
+    # The pin is the COMMIT, and the comment carries the full version. Both
+    # halves were wrong until 2026-08-18 and each cost something:
+    #
+    #   refs/tags/v4        = 329bcc8f   <- what was pinned: a tag OBJECT
+    #   refs/tags/v4^{}     = 84c30a85   <- the commit it dereferences to
+    #   refs/tags/v4.1.0^{} = 84c30a85   <- the same commit, under a version
+    #
+    # A tag object is not what "SHA-pinned" means anywhere else in this file,
+    # and a bare `# v4` is a version Dependabot cannot turn into an update
+    # type - so this action fell out of the `actions` group and arrived as its
+    # own pull request, which is the opposite of why the groups exist.
     - name: deploy to web-abap2UI5-build
-      uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4
+      uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
       if: steps.upstream.outputs.changed == 'true' && github.ref == 'refs/heads/main' && github.repository == 'abap2UI5/web-abap2UI5'
       with:
         deploy_key: ${{ secrets.DEPLOY_WEB }}
