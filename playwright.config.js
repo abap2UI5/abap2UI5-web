@@ -24,55 +24,36 @@ module.exports = defineConfig({
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://localhost:3000',
+    /* Base URL to use in actions like `await page.goto('/')` - the static
+       build server, see webServer below. */
+    baseURL: 'http://localhost:8081',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
   },
 
-  /* Configure projects for major browsers */
+  /* One project, because there is one suite. The scaffold's chromium /
+     firefox / webkit projects only ever matched the generated example spec
+     (they carried `testIgnore: /web.spec.js/`), which was deleted together
+     with tests-examples/ - and CI never started them. */
   projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-      testIgnore: /web\.spec\.js/,
-    },
-
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-      testIgnore: /web\.spec\.js/,
-    },
-
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-      testIgnore: /web\.spec\.js/,
-    },
-
     /* Webpack browser build (the GitHub Pages demo): the transpiled backend
        runs inside the browser; ./build is served by srv/serve_build.mjs.
-       Requires `npm run webpack:build` beforehand. */
+       Requires `npm run build:web` beforehand. */
     {
       name: 'chromium-web',
-      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:8081' },
+      use: { ...devices['Desktop Chrome'] },
       testMatch: /web\.spec\.js/,
     },
   ],
 
-  /* Run your local dev server before starting the tests */
-   webServer: [
-     {
-       command: 'npm run express',
-       url: 'http://localhost:3000',
-       reuseExistingServer: !process.env.CI,
-     },
-     {
-       command: 'npm run serve:build',
-       url: 'http://localhost:8081',
-       reuseExistingServer: !process.env.CI,
-     },
-   ],
+  /* Only the static build server: it is the one the single suite talks to.
+     The transpiled Node backend (`npm run serve:express`, port 3000) is a
+     manual tool - starting it here booted a whole second ABAP runtime that
+     no test ever requested. See the README for running it by hand. */
+  webServer: {
+    command: 'npm run serve:build',
+    url: 'http://localhost:8081',
+    reuseExistingServer: !process.env.CI,
+  },
 });
-

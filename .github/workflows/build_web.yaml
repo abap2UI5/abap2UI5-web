@@ -41,11 +41,15 @@ jobs:
         # `<core>--<sha>` and the cron stopped noticing samples changes
         # altogether.
         core=$(git ls-remote --exit-code https://github.com/abap2UI5/abap2UI5 refs/heads/main | cut -f1)
-        # `npm run clone2` clones the samples default branch, so the stamp has
+        # `npm run clone:samples` clones the samples default branch, so the stamp has
         # to follow the same branch the build actually consumes
         samples=$(git ls-remote --exit-code https://github.com/abap2UI5/samples refs/heads/main | cut -f1)
         stamp="${core}-${samples}-${GITHUB_SHA}"
         echo "stamp=$stamp" >> "$GITHUB_OUTPUT"
+        # Same two shas again, separately, for BUILD_INFO.json. The stamp
+        # itself stays one opaque string - it is compared, never parsed.
+        echo "core=$core" >> "$GITHUB_OUTPUT"
+        echo "samples=$samples" >> "$GITHUB_OUTPUT"
         last=$(curl -fsSL https://raw.githubusercontent.com/abap2UI5/web-abap2UI5-build/main/build-stamp.txt || echo none)
         if [ "${{ github.event_name }}" = "schedule" ] && [ "$last" = "$stamp" ]; then
           echo "inputs unchanged since last deploy - skipping scheduled rebuild"
@@ -78,9 +82,12 @@ jobs:
         key: playwright-chromium-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
     - run: npm run clone
       if: steps.upstream.outputs.changed == 'true'
-    - run: npm run build && node output/index.mjs
+    # `npm test` is downport + transpile + the transpiled unit tests. It is
+    # spelled as the plain lifecycle script on purpose: what CI runs as "the
+    # tests" and what a contributor runs locally have to be the same command.
+    - run: npm test
       if: steps.upstream.outputs.changed == 'true'
-    - run: npm run webpack:build
+    - run: npm run build:web
       if: steps.upstream.outputs.changed == 'true'
     # Browser smoke against the freshly built site (tests/web.spec.js via the
     # chromium-web project: backend boots in the browser, UI5 loads, the first
@@ -94,10 +101,41 @@ jobs:
       run: npx playwright install-deps chromium
     - name: Smoke test the webpack build in a real browser
       if: steps.upstream.outputs.changed == 'true'
-      run: npx playwright test --project=chromium-web
+      run: npm run test:e2e
+    # The deploy is force_orphan, so the published repository is exactly what
+    # ./build contains - a file committed there by hand is gone with the next
+    # run. Everything a visitor should find (what this is, who built it, where
+    # to report a bug, where the live page is) therefore ships from here.
+    # Must run after webpack, which cleans ./build.
+    - name: Add README, LICENSE and 404 page to the deploy
+      if: steps.upstream.outputs.changed == 'true'
+      run: |
+        set -euo pipefail
+        cp app/pages/README.md app/pages/404.html build/
+        cp LICENSE build/
     - name: Write build stamp
       if: steps.upstream.outputs.changed == 'true'
-      run: printf '%s' "${{ steps.upstream.outputs.stamp }}" > build/build-stamp.txt
+      run: |
+        set -euo pipefail
+        # Unchanged format and unchanged filename on purpose: the freshness
+        # check above reads this file back from the deployed site and compares
+        # it as one string. BUILD_INFO.json below is additive and read by
+        # nobody, so the two never have to agree on anything.
+        printf '%s' "${{ steps.upstream.outputs.stamp }}" > build/build-stamp.txt
+        cat > build/BUILD_INFO.json <<JSON
+        {
+          "live_url": "https://abap2ui5.github.io/web-abap2UI5-build/",
+          "built_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "built_by": "https://github.com/abap2UI5/web-abap2UI5/actions/runs/${GITHUB_RUN_ID}",
+          "workflow": ".github/workflows/build_web.yaml",
+          "sources": {
+            "abap2UI5": "${{ steps.upstream.outputs.core }}",
+            "samples": "${{ steps.upstream.outputs.samples }}",
+            "web-abap2UI5": "${GITHUB_SHA}"
+          },
+          "build_stamp": "${{ steps.upstream.outputs.stamp }}"
+        }
+        JSON
     # SHA-pinned like every other action here. This is the step that holds
     # DEPLOY_WEB and writes to the published repository, so it was the last
     # one that should have been tracking a mutable tag.

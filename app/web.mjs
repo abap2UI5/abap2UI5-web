@@ -1,4 +1,4 @@
-// _init.mjs is rewritten by ci/patch_init_order.mjs (npm run transpile) to
+// _init.mjs is rewritten by ci/patch_init_order.mjs (npm run build:transpile) to
 // load every transpiled module with a sequential await import(), which
 // guarantees the class registration order in every ESM runtime and bundler.
 // Webpack still produces a single bundle via dynamicImportMode: "eager".
