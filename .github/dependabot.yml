@@ -20,8 +20,7 @@ updates:
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: weekly
-      day: tuesday
+      interval: monthly
       # Well clear of the 08:00 UTC daily rebuild, so a Dependabot pull
       # request and the scheduled build do not fight for the runner.
       time: "05:30"
@@ -34,9 +33,19 @@ updates:
       abaplint:
         patterns:
           - "@abaplint/*"
+        update-types: ["minor", "patch"]
+      abaplint-major:
+        patterns:
+          - "@abaplint/*"
+        update-types: ["major"]
       toolchain:
         patterns:
           - "*"
+        update-types: ["minor", "patch"]
+      toolchain-major:
+        patterns:
+          - "*"
+        update-types: ["major"]
     ignore:
       # @abaplint/cli is pinned EXACTLY (no caret) to the version abap2UI5
       # itself syntax-checks with: the downport result has to pass the same
@@ -49,11 +58,15 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
-      day: tuesday
+      interval: monthly
       time: "05:30"
     open-pull-requests-limit: 5
     groups:
       actions:
         patterns:
           - "*"
+        update-types: ["minor", "patch"]
+      actions-major:
+        patterns:
+          - "*"
+        update-types: ["major"]
