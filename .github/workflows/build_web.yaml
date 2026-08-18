@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20 # browser smoke needs the Chromium download on top of the build
     steps:
-    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
     # The daily cron rebuilds blindly; skip it when neither this repo nor the
     # cloned upstream sources changed since the last deploy. The deployed site
@@ -140,7 +140,7 @@ jobs:
     # DEPLOY_WEB and writes to the published repository, so it was the last
     # one that should have been tracking a mutable tag.
     - name: deploy to web-abap2UI5-build
-      uses: peaceiris/actions-gh-pages@329bcc8f12caed2cefe5a5b80781499a6f3b361b # v4
+      uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4
       if: steps.upstream.outputs.changed == 'true' && github.ref == 'refs/heads/main' && github.repository == 'abap2UI5/web-abap2UI5'
       with:
         deploy_key: ${{ secrets.DEPLOY_WEB }}
