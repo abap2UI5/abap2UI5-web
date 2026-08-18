@@ -140,7 +140,7 @@ jobs:
     # DEPLOY_WEB and writes to the published repository, so it was the last
     # one that should have been tracking a mutable tag.
     - name: deploy to web-abap2UI5-build
-      uses: peaceiris/actions-gh-pages@329bcc8f12caed2cefe5a5b80781499a6f3b361b # v4
+      uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4
       if: steps.upstream.outputs.changed == 'true' && github.ref == 'refs/heads/main' && github.repository == 'abap2UI5/web-abap2UI5'
       with:
         deploy_key: ${{ secrets.DEPLOY_WEB }}
