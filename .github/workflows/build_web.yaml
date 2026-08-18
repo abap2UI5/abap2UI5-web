@@ -41,7 +41,7 @@ jobs:
         # `<core>--<sha>` and the cron stopped noticing samples changes
         # altogether.
         core=$(git ls-remote --exit-code https://github.com/abap2UI5/abap2UI5 refs/heads/main | cut -f1)
-        # `npm run clone2` clones the samples default branch, so the stamp has
+        # `npm run clone:samples` clones the samples default branch, so the stamp has
         # to follow the same branch the build actually consumes
         samples=$(git ls-remote --exit-code https://github.com/abap2UI5/samples refs/heads/main | cut -f1)
         stamp="${core}-${samples}-${GITHUB_SHA}"
@@ -78,9 +78,12 @@ jobs:
         key: playwright-chromium-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
     - run: npm run clone
       if: steps.upstream.outputs.changed == 'true'
-    - run: npm run build && node output/index.mjs
+    # `npm test` is downport + transpile + the transpiled unit tests. It is
+    # spelled as the plain lifecycle script on purpose: what CI runs as "the
+    # tests" and what a contributor runs locally have to be the same command.
+    - run: npm test
       if: steps.upstream.outputs.changed == 'true'
-    - run: npm run webpack:build
+    - run: npm run build:web
       if: steps.upstream.outputs.changed == 'true'
     # Browser smoke against the freshly built site (tests/web.spec.js via the
     # chromium-web project: backend boots in the browser, UI5 loads, the first
@@ -94,7 +97,7 @@ jobs:
       run: npx playwright install-deps chromium
     - name: Smoke test the webpack build in a real browser
       if: steps.upstream.outputs.changed == 'true'
-      run: npx playwright test --project=chromium-web
+      run: npm run test:e2e
     - name: Write build stamp
       if: steps.upstream.outputs.changed == 'true'
       run: printf '%s' "${{ steps.upstream.outputs.stamp }}" > build/build-stamp.txt
