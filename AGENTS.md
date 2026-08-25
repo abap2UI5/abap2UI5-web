@@ -43,6 +43,20 @@ joins a namespace rather than inventing a bare name.
 Each of these was paid for with a broken deploy. The full story is in the
 comment at the code; this list exists so nobody deletes one without reading it.
 
+- **The `z2ui5_if_exit` copy-back in `clone:core`** (`package.json`). The clone
+  drops upstream's frozen `src/99` package, but one object in it is not dead
+  weight: `src/01/04/z2ui5_cl_ui5_user_exit` still declares a reference of type
+  `z2ui5_if_exit` and its test class still implements the interface, because
+  upstream keeps the superseded exit name working while the rename to
+  `z2ui5_if_ui5_exit` settles. Deleting the whole package therefore breaks the
+  downport with 10 unresolved-type / check_syntax errors — which is what every
+  scheduled build did from 2026-08-22 on, the morning after upstream retired
+  the interface into `src/99`. The interface (plus the package's
+  `package.devc.xml`) is copied back and nothing else; its three types are
+  declared AS the ones on `z2ui5_if_ui5_exit`, so it drags no further
+  dependency in. When upstream finally deletes `z2ui5_if_exit`, this copy-back
+  goes with it.
+
 - **`keep_classnames` / `keep_fnames` in the Terser options**
   (`webpack.config.js`). The transpiled ABAP carries its type system in the
   *names*: RTTI (`describe_by_data` and friends) reads class and function
