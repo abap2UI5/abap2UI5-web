@@ -79,6 +79,27 @@ comment at the code; this list exists so nobody deletes one without reading it.
   instances only, named class by class: `Z2UI5_CL_UI5_*` as a wildcard would
   also catch the demo *apps*, whose attributes must be dissolved.
 
+- **The abaplint downport shim** (`abap2UI5/node/setup/patch-abaplint-downport.mjs`,
+  called from `build:downport` against *this* repo's `@abaplint/cli` bundle).
+  Stock abaplint outlines a component-level table expression
+  (`tab[ 1 ]-comp`) into a work AREA — a copy — so the row reference is gone
+  by the time the framework sees it, and `client->_bind( tab = … tab_index = … )`
+  refuses the cell with `BINDING_ERROR_TAB_CELL_LEVEL`. The shim makes the
+  outline `ASSIGNING`, which is what the same abaplint rule's write path
+  already emits.
+
+  It is upstream's script, run from the clone `clone:core` already makes,
+  never a copy: it is a temporary shim for an abaplint defect and it must
+  disappear from every consumer on the same day. The bundle path is passed
+  explicitly because the clone has no `node_modules` of its own — the default
+  would silently patch nothing here.
+
+  The canary is upstream's own `test_bind_tab_cell` (`z2ui5_cl_ui5_client`
+  test class), which `npm test` runs: without the shim that test is the one
+  red line in an otherwise green suite. That is how this was found — upstream
+  added the cell binding on 2026-08-30 and this pipeline, which downports the
+  same sources with a different abaplint install, had no shim to apply.
+
 - **`ci/patch_init_order.mjs`**. The transpiler emits static imports of async
   modules; ES only guarantees they *start* in order, not that each finishes
   before the next starts. Cross-class references made during
