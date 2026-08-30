@@ -142,4 +142,7 @@ run after the change compares against something it cannot parse.
 `@abaplint/cli` is pinned exactly (no caret) to the version abap2UI5 itself
 syntax-checks with — the downport result has to pass the same check as
 upstream's source. Bump it together with abap2UI5's pin, by hand; Dependabot is
-told to ignore it (`.github/dependabot.yml`).
+told to ignore it (`.github/dependabot.yml`). `ci/check-abaplint-pin.mjs`
+(run by `npm run clone`, so every build sees it) fails when the pin falls out
+of lockstep — the rule was prose only until the pin sat at 2.120.3 while
+upstream had long resolved 2.120.33.
