@@ -5,7 +5,7 @@
   "description": "abap2UI5 running fully in the browser - downported, transpiled to JS and bundled for GitHub Pages.",
   "scripts": {
     "check": "npm run clone && npm test && npm run build:web",
-    "clone": "rm -rf src && npm run clone:core && npm run clone:samples",
+    "clone": "rm -rf src && npm run clone:core && npm run clone:samples && node ci/check-abaplint-pin.mjs",
     "clone:core": "rm -rf abap2UI5 && git clone --depth=1 https://github.com/abap2UI5/abap2UI5 && cp -r abap2UI5/src src && rm -rf src/99 && mkdir -p src/99 && cp abap2UI5/src/99/package.devc.xml abap2UI5/src/99/z2ui5_if_exit.intf.abap abap2UI5/src/99/z2ui5_if_exit.intf.xml src/99/",
     "clone:samples": "rm -rf abap2UI5-samples && git clone --depth=1 https://github.com/abap2UI5/samples abap2UI5-samples && mkdir -p src/samples && cp -r abap2UI5-samples/src/. src/samples",
     "build": "npm run build:downport && npm run build:transpile && rm -rf src",
@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/abap2UI5/web-abap2UI5#readme",
   "devDependencies": {
-    "@abaplint/cli": "2.120.3",
+    "@abaplint/cli": "2.120.33",
     "@abaplint/database-sqlite": "^2.13.40",
     "@abaplint/runtime": "^2.13.40",
     "@abaplint/transpiler-cli": "^2.13.40",
@@ -48,5 +48,8 @@
     "webpack": "^5.108.4",
     "webpack-cli": "^7.2.1",
     "webpack-dev-server": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

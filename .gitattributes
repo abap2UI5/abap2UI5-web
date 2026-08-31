@@ -1,0 +1,15 @@
+# Normalize line endings to LF for all text files.
+#
+# This repository commits ABAP (srv/zcl_sicf.clas.abap joins the transpile)
+# and its ci/ configs feed abaplint and the transpiler, which expect LF -
+# CONVENTIONS §6 asks for this file in every repository carrying ABAP.
+* text=auto eol=lf
+*.abap text eol=lf
+*.xml text eol=lf
+*.json text eol=lf
+*.jsonc text eol=lf
+*.md text eol=lf
+*.mjs text eol=lf
+*.js text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
