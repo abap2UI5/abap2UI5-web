@@ -75,7 +75,8 @@ test('event roundtrip restores the saved draft (BUTTON_CHECK)', async ({ page })
     };
   });
 
-  expect(result.app).toBe('Z2UI5_CL_APP_STARTUP');
+  // renamed from Z2UI5_CL_APP_STARTUP by abap2UI5#2564
+  expect(result.app).toBe('Z2UI5_CL_UI5_APP_START');
   expect(result.id1).toBeTruthy();
   expect(result.id2).toBeTruthy();
   expect(result.id2).not.toBe(result.id1);

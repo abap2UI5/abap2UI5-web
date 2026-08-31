@@ -1,4 +1,4 @@
-// _init.mjs is rewritten by ci/patch_init_order.mjs (npm run transpile) to
+// _init.mjs is rewritten by ci/patch_init_order.mjs (npm run build:transpile) to
 // load every transpiled module with a sequential await import(), which
 // guarantees the class registration order in every ESM runtime and bundler.
 // Webpack still produces a single bundle via dynamicImportMode: "eager".
@@ -121,7 +121,25 @@ try {
     "return remove(type === 'unload' ? 'pagehide' : type, listener, options);" +
     "};" +
     "})();</" + "script>";
-  html = html.replace(/<script[^>]*\bid="sap-ui-bootstrap"/i, unloadShim + "$&");
+  // Match the REAL bootstrap tag, which is the one that also carries the
+  // data-sap-ui-* attributes. `id="sap-ui-bootstrap"` alone is not enough any
+  // more: the framework's developer tools print the string
+  //   '  (no <script id="sap-ui-bootstrap"> on this page -'
+  // when they cannot find the element, and that literal travels INSIDE the
+  // preload of the first script block - earlier in the HTML than the real tag.
+  // A regex matching it inserted this shim, `</script>` and all, into the
+  // middle of the framework's own JavaScript: the script element ended there,
+  // the rest of it was parsed as HTML, onInitComponent was never defined, and
+  // UI5's data-sap-ui-oninit called a function that did not exist. The page
+  // then sits at a bootstrap element that never runs - which is exactly what
+  // the browser smoke reported and what no other check could see.
+  const BOOTSTRAP_TAG = /<script[^>]*\bid="sap-ui-bootstrap"[^>]*\bdata-sap-ui-/i;
+  if (!BOOTSTRAP_TAG.test(html)) {
+    // never ship a silently unshimmed page: a miss here used to corrupt the
+    // document instead of leaving it alone
+    throw new Error("web.mjs: no sap-ui-bootstrap script tag found in the backend HTML");
+  }
+  html = html.replace(BOOTSTRAP_TAG, unloadShim + "$&");
 
   // document.open() is a no-op while the initial document is still being
   // parsed - wait until the loader page finished parsing.

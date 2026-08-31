@@ -1,0 +1,72 @@
+# This repository is a build pipeline, and its whole job is to stay current:
+# the daily build downports and transpiles today's abap2UI5 with whatever
+# @abaplint tooling is in package.json. A stale toolchain here does not show
+# up as a red build, it shows up as a demo that quietly stops matching
+# upstream - so the updates are automated rather than left to someone
+# noticing a version number.
+#
+# Grouped into one pull request per ecosystem: these manifests are a handful
+# of build-time tools, and ten separate pull requests for them would be read
+# by nobody. Every pull request runs build_web (downport + transpile + unit
+# tests + webpack + the browser smoke), which is the real verdict on a bump.
+# A group that fails is bisected by dropping a line from it.
+#
+# Actions are pinned by commit SHA; Dependabot understands that pinning and
+# moves the SHA while keeping the version comment next to it, which is what
+# makes those pins maintainable at all.
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+      # Well clear of the 08:00 UTC daily rebuild, so a Dependabot pull
+      # request and the scheduled build do not fight for the runner.
+      time: "05:30"
+    open-pull-requests-limit: 5
+    groups:
+      # transpiler-cli, runtime and database-sqlite are released in lockstep
+      # and are only meaningful in matching versions - bumping them in
+      # separate pull requests just produces mixed states nobody wants to
+      # merge.
+      abaplint:
+        patterns:
+          - "@abaplint/*"
+        update-types: ["minor", "patch"]
+      abaplint-major:
+        patterns:
+          - "@abaplint/*"
+        update-types: ["major"]
+      toolchain:
+        patterns:
+          - "*"
+        update-types: ["minor", "patch"]
+      toolchain-major:
+        patterns:
+          - "*"
+        update-types: ["major"]
+    ignore:
+      # @abaplint/cli is pinned EXACTLY (no caret) to the version abap2UI5
+      # itself syntax-checks with: the downport result has to pass the same
+      # check as upstream's own source, so a newer linter here would either
+      # fail the build on rules upstream does not have yet, or hide ones it
+      # does. It is bumped by hand, together with abap2UI5's pin - see the
+      # README. Dependabot must not raise it on its own.
+      - dependency-name: "@abaplint/cli"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+      time: "05:30"
+    open-pull-requests-limit: 5
+    groups:
+      actions:
+        patterns:
+          - "*"
+        update-types: ["minor", "patch"]
+      actions-major:
+        patterns:
+          - "*"
+        update-types: ["major"]

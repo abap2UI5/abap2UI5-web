@@ -13,17 +13,12 @@ permissions:
   contents: read
   issues: write  # to report failed scheduled runs
 
-env:
-  # peaceiris/actions-gh-pages@v4 still ships with node20; force the runner to
-  # execute it on node24 until upstream publishes a node24-based release.
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
-
 jobs:
   build_web:
     runs-on: ubuntu-latest
     timeout-minutes: 20 # browser smoke needs the Chromium download on top of the build
     steps:
-    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
     # The daily cron rebuilds blindly; skip it when neither this repo nor the
     # cloned upstream sources changed since the last deploy. The deployed site
@@ -32,10 +27,24 @@ jobs:
     - name: Check for upstream changes
       id: upstream
       run: |
-        core=$(git ls-remote https://github.com/abap2UI5/abap2UI5 refs/heads/main | cut -f1)
-        samples=$(git ls-remote https://github.com/abap2UI5/samples refs/heads/cloud | cut -f1)
+        set -euo pipefail
+        # --exit-code together with pipefail: a branch that is gone upstream
+        # fails the job here instead of stamping an empty field. That is
+        # exactly how the samples half went blind - it asked for a `cloud`
+        # branch the samples repository does not have, so `git ls-remote`
+        # printed nothing and still exited 0. The stamp then read
+        # `<core>--<sha>` and the cron stopped noticing samples changes
+        # altogether.
+        core=$(git ls-remote --exit-code https://github.com/abap2UI5/abap2UI5 refs/heads/main | cut -f1)
+        # `npm run clone:samples` clones the samples default branch, so the stamp has
+        # to follow the same branch the build actually consumes
+        samples=$(git ls-remote --exit-code https://github.com/abap2UI5/samples refs/heads/main | cut -f1)
         stamp="${core}-${samples}-${GITHUB_SHA}"
         echo "stamp=$stamp" >> "$GITHUB_OUTPUT"
+        # Same two shas again, separately, for BUILD_INFO.json. The stamp
+        # itself stays one opaque string - it is compared, never parsed.
+        echo "core=$core" >> "$GITHUB_OUTPUT"
+        echo "samples=$samples" >> "$GITHUB_OUTPUT"
         last=$(curl -fsSL https://raw.githubusercontent.com/abap2UI5/web-abap2UI5-build/main/build-stamp.txt || echo none)
         if [ "${{ github.event_name }}" = "schedule" ] && [ "$last" = "$stamp" ]; then
           echo "inputs unchanged since last deploy - skipping scheduled rebuild"
@@ -44,34 +53,101 @@ jobs:
           echo "changed=true" >> "$GITHUB_OUTPUT"
         fi
 
-    - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
       if: steps.upstream.outputs.changed == 'true'
       with:
         node-version: '22'
         cache: 'npm'
     - run: npm ci
       if: steps.upstream.outputs.changed == 'true'
+
+    # Chromium is ~130 MB and was downloaded on every single run - it is the
+    # reason this job carries a 20 minute timeout. The key is the Playwright
+    # version, because that is what decides which build is required.
+    - name: Get Playwright version
+      id: playwright-version
+      if: steps.upstream.outputs.changed == 'true'
+      run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+    - name: Cache Playwright Chromium
+      id: playwright-cache
+      if: steps.upstream.outputs.changed == 'true'
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-chromium-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
     - run: npm run clone
       if: steps.upstream.outputs.changed == 'true'
-    - run: npm run build && node output/index.mjs
+    # `npm test` is downport + transpile + the transpiled unit tests. It is
+    # spelled as the plain lifecycle script on purpose: what CI runs as "the
+    # tests" and what a contributor runs locally have to be the same command.
+    - run: npm test
       if: steps.upstream.outputs.changed == 'true'
-    - run: npm run webpack:build
+    - run: npm run build:web
       if: steps.upstream.outputs.changed == 'true'
     # Browser smoke against the freshly built site (tests/web.spec.js via the
     # chromium-web project: backend boots in the browser, UI5 loads, the first
     # roundtrip answers). A blank page must never reach the deploy step —
     # before this gate the site deployed completely untested.
     - name: Install Playwright Chromium
-      if: steps.upstream.outputs.changed == 'true'
+      if: steps.upstream.outputs.changed == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
       run: npx playwright install --with-deps chromium
+    - name: Install Playwright OS dependencies
+      if: steps.upstream.outputs.changed == 'true' && steps.playwright-cache.outputs.cache-hit == 'true'
+      run: npx playwright install-deps chromium
     - name: Smoke test the webpack build in a real browser
       if: steps.upstream.outputs.changed == 'true'
-      run: npx playwright test --project=chromium-web
+      run: npm run test:e2e
+    # The deploy is force_orphan, so the published repository is exactly what
+    # ./build contains - a file committed there by hand is gone with the next
+    # run. Everything a visitor should find (what this is, who built it, where
+    # to report a bug, where the live page is) therefore ships from here.
+    # Must run after webpack, which cleans ./build.
+    - name: Add README, LICENSE and 404 page to the deploy
+      if: steps.upstream.outputs.changed == 'true'
+      run: |
+        set -euo pipefail
+        cp app/pages/README.md app/pages/404.html build/
+        cp LICENSE build/
     - name: Write build stamp
       if: steps.upstream.outputs.changed == 'true'
-      run: printf '%s' "${{ steps.upstream.outputs.stamp }}" > build/build-stamp.txt
+      run: |
+        set -euo pipefail
+        # Unchanged format and unchanged filename on purpose: the freshness
+        # check above reads this file back from the deployed site and compares
+        # it as one string. BUILD_INFO.json below is additive and read by
+        # nobody, so the two never have to agree on anything.
+        printf '%s' "${{ steps.upstream.outputs.stamp }}" > build/build-stamp.txt
+        cat > build/BUILD_INFO.json <<JSON
+        {
+          "live_url": "https://abap2ui5.github.io/web-abap2UI5-build/",
+          "built_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "built_by": "https://github.com/abap2UI5/web-abap2UI5/actions/runs/${GITHUB_RUN_ID}",
+          "workflow": ".github/workflows/build_web.yaml",
+          "sources": {
+            "abap2UI5": "${{ steps.upstream.outputs.core }}",
+            "samples": "${{ steps.upstream.outputs.samples }}",
+            "web-abap2UI5": "${GITHUB_SHA}"
+          },
+          "build_stamp": "${{ steps.upstream.outputs.stamp }}"
+        }
+        JSON
+    # SHA-pinned like every other action here. This is the step that holds
+    # DEPLOY_WEB and writes to the published repository, so it was the last
+    # one that should have been tracking a mutable tag.
+    #
+    # The pin is the COMMIT, and the comment carries the full version. Both
+    # halves were wrong until 2026-08-18 and each cost something:
+    #
+    #   refs/tags/v4        = 329bcc8f   <- what was pinned: a tag OBJECT
+    #   refs/tags/v4^{}     = 84c30a85   <- the commit it dereferences to
+    #   refs/tags/v4.1.0^{} = 84c30a85   <- the same commit, under a version
+    #
+    # A tag object is not what "SHA-pinned" means anywhere else in this file,
+    # and a bare `# v4` is a version Dependabot cannot turn into an update
+    # type - so this action fell out of the `actions` group and arrived as its
+    # own pull request, which is the opposite of why the groups exist.
     - name: deploy to web-abap2UI5-build
-      uses: peaceiris/actions-gh-pages@v4
+      uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
       if: steps.upstream.outputs.changed == 'true' && github.ref == 'refs/heads/main' && github.repository == 'abap2UI5/web-abap2UI5'
       with:
         deploy_key: ${{ secrets.DEPLOY_WEB }}
