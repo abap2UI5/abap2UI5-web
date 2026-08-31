@@ -16,6 +16,7 @@
     "test": "npm run build && npm run test:unit",
     "test:unit": "node output/index.mjs",
     "test:e2e": "playwright test --project=chromium-web",
+    "media": "node media/record.mjs",
     "serve:build": "node srv/serve_build.mjs",
     "serve:express": "node srv/express.mjs",
     "serve:webpack": "webpack serve --mode development"

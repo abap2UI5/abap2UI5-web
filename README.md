@@ -57,6 +57,24 @@ Test the build locally (webpack-dev-server HMR does not work with the `document.
 npm run serve:build
 ```
 
+### Media Pipeline
+
+Record any abap2UI5 app as video and screenshot — post-ready assets for
+LinkedIn, docs and READMEs:
+
+```
+npm run media -- --app <app-class>
+```
+
+By default this records the app on the published web build above; `--url`
+points it at any other page that starts apps via `?app_start=` (a local
+`serve:build`, a real system). `--steps <file>` replays a scripted
+interaction ([media/steps.example.json](media/steps.example.json)), `--size`
+switches between desktop, phone and tablet viewports. Output per app:
+`.webm` and `.png` always, `.mp4` (what LinkedIn ingests best) and `.gif`
+when ffmpeg is installed. [media/record.mjs](media/record.mjs) documents
+all options, including offline recording via `--ui5-from`.
+
 ### CI
 The `build_web` workflow runs daily: it clones [abap2UI5](https://github.com/abap2UI5/abap2UI5) and the top-level apps of [samples](https://github.com/abap2UI5/samples), runs downport, transpile, unit tests and the webpack build, then **smoke tests the built site in a real browser** before deploying it to [web-abap2UI5-build](https://github.com/abap2UI5/web-abap2UI5-build) (GitHub Pages). Note: GitHub disables scheduled workflows after 60 days without repository activity — re-enable it under Actions if the demo stops updating.
 

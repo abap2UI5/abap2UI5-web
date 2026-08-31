@@ -1,0 +1,9 @@
+[
+  { "wait": 500 },
+  { "click": "input" },
+  { "type": ["input", "Hello from ABAP"] },
+  { "press": "Enter" },
+  { "wait": 1000 },
+  { "screenshot": "after-enter" },
+  { "hover": "button" }
+]

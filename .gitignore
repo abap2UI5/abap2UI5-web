@@ -7,3 +7,4 @@ build
 src
 playwright-report
 test-results
+media-out
