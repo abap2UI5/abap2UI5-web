@@ -15,6 +15,7 @@
     "test": "npm run downport && npm run transpile && npm run unit",
     "cleanup": "rm -rf input && rm -rf output",
     "express": "node srv/express.mjs",
+    "media": "node media/record.mjs",
     "serve:build": "node srv/serve_build.mjs",
     "webpack:run": "webpack serve --mode development --env development",
     "webpack:build": "webpack --mode development --env development",
