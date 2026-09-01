@@ -36,7 +36,7 @@
     "@abaplint/runtime": "^2.13.40",
     "@abaplint/transpiler-cli": "^2.13.40",
     "@playwright/test": "^1.61.1",
-    "@types/node": "^26.1.1",
+    "@types/node": "^26.4.0",
     "buffer": "^6.0.3",
     "copy-webpack-plugin": "^14.0.0",
     "express": "^5.2.1",
@@ -46,8 +46,8 @@
     "sql.js": "^1.14.1",
     "terser-webpack-plugin": "^5.6.1",
     "web-encoding": "^1.1.5",
-    "webpack": "^5.108.4",
-    "webpack-cli": "^7.2.1",
+    "webpack": "^5.110.1",
+    "webpack-cli": "^7.2.3",
     "webpack-dev-server": "^6.0.0"
   },
   "engines": {
