@@ -71,6 +71,22 @@ comment at the code; this list exists so nobody deletes one without reading it.
   running wasm/eval runtime while protecting nothing — there is no network
   backend in this demo.
 
+- **The Request branch of the fetch override** (`app/web.mjs`). The override
+  routes a `fetch()` addressed to this page into the transpiled backend, and it
+  has to recognize the target in all three argument shapes the Fetch API takes:
+  a string, a `URL` — and a `Request`. The last one is not hypothetical.
+  OpenUI5 1.152 ships `sap/ui/performance/FetchInterceptor`, which wraps
+  whatever `globalThis.fetch` is when it loads (this override) and always calls
+  it as `fetch(new Request(...))`, folding the init object into the request. A
+  string-or-URL-only test therefore stopped matching, every backend POST fell
+  through to the network and came back as the static server's 404
+  `Cannot POST /`: the page booted, rendered nothing and answered no button.
+  Nothing in this repository or upstream changed that day — the page boots UI5
+  from the *cachebuster* URL, so the CDN flipping to 1.152 was enough to turn
+  the same commit red. For the same reason `backendFetch` answers with a real
+  `Response` and not a duck-typed look-alike: the interceptor hands the
+  returned object to its `onResponse` hooks, which `clone()` it.
+
 - **`ci/patch_diss_oref.mjs`**. `DISS_OREF` resolves attribute chains through
   the *dynamic* type in the transpiler runtime, so `dissolve()` walks from the
   app's `CLIENT` down into the framework core and the draft save clears the
