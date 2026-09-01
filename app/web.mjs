@@ -16,7 +16,12 @@ import {initializeABAP} from "../output/_init.mjs";
 await initializeABAP();
 
 // ---- backend fetch: routes a browser fetch into the transpiled ABAP backend ----
-async function backendFetch(url, options = {}) {
+// Takes the same argument shapes the Fetch API does - (url, init) AND a single
+// Request instance - because that is what actually reaches us, see the
+// FetchInterceptor note at the override below.
+async function backendFetch(input, options = {}) {
+  const request = await readRequest(input, options);
+  const url = request.url;
   let status = 200;
   let body = Buffer.alloc(0);
   const headers = new Map();
@@ -37,32 +42,61 @@ async function backendFetch(url, options = {}) {
     },
   };
 
-  // express lowercases request header names; the shim iterates them as-is.
-  const reqHeaders = {};
-  for (const [name, value] of Object.entries(options.headers || {})) {
-    reqHeaders[name.toLowerCase()] = String(value);
-  }
-
   const req = {
     // The shim reads req.body.toString("hex"), so this must be a real Buffer
     // (empty for GET/HEAD - Server.endSession sends a body-less HEAD).
-    body: Buffer.from(options.body || ""),
-    method: options.method || "GET",
-    headers: reqHeaders,
+    body: request.body,
+    method: request.method,
+    // express lowercases request header names; the shim iterates them as-is.
+    headers: request.headers,
     path: new URL(url, window.location.href).pathname,
-    url: String(url),
+    url,
   };
 
   await abap.Classes["CL_EXPRESS_ICF_SHIM"].run({req, res, class: "ZCL_SICF"});
 
-  const text = body.toString();
-  return {
-    ok: status >= 200 && status < 300,
+  // A REAL Response, not a hand-rolled look-alike. The FetchInterceptor below
+  // hands whatever this returns to its onResponse hooks, and those call
+  // .clone() on it - a duck-typed object with ok/status/text/json survives
+  // only for as long as nobody registers a hook. Response also gives the
+  // frontend the Headers contract (case-insensitive get, null when absent)
+  // for free, which is all the hand-rolled map ever provided.
+  // 204/205/304 must be constructed body-less - the ETag path answers 304.
+  const hasBody = status !== 204 && status !== 205 && status !== 304;
+  return new Response(hasBody ? body : null, {
     status,
-    headers: {get: (name) => headers.get(String(name).toLowerCase()) ?? null},
-    text: async () => text,
-    json: async () => JSON.parse(text),
+    headers: Object.fromEntries(headers),
+  });
+}
+
+// Read a fetch() call - in either argument shape - down to the four fields
+// the ICF shim needs. A Request carries method, headers and body itself, so
+// an init object is only consulted for the (url, init) shape.
+async function readRequest(input, options) {
+  if (isRequest(input)) {
+    return {
+      url: input.url,
+      method: input.method,
+      // Headers already lowercases the field names it iterates.
+      headers: Object.fromEntries(input.headers),
+      // Resolves to an empty buffer for a body-less request (GET/HEAD).
+      body: Buffer.from(await input.arrayBuffer()),
+    };
+  }
+  const headers = {};
+  for (const [name, value] of Object.entries(options.headers || {})) {
+    headers[name.toLowerCase()] = String(value);
+  }
+  return {
+    url: String(input),
+    method: options.method || "GET",
+    headers,
+    body: Buffer.from(options.body || ""),
   };
+}
+
+function isRequest(input) {
+  return typeof Request !== "undefined" && input instanceof Request;
 }
 
 // ---- fetch override: only intercept requests addressed to "this page" ----
@@ -70,14 +104,30 @@ async function backendFetch(url, options = {}) {
 // Compare origin + pathname instead of the full href: the hash changes at
 // runtime (SET_PUSH_STATE / History control), while sql-wasm.wasm (different
 // pathname) and the UI5 CDN (different origin) must reach the network.
+//
+// The first argument is every shape the Fetch API accepts - a string, a URL,
+// AND a Request. The Request shape is not theoretical: OpenUI5 1.152 ships
+// sap/ui/performance/FetchInterceptor, which wraps whatever globalThis.fetch
+// is when it loads (this override) and calls it as fetch(new Request(...)) -
+// "always construct a Request from the arguments", so the init object is
+// folded in and never reaches us separately. This page boots UI5 from the
+// cachebuster URL, i.e. always the newest release: on the day the CDN flipped
+// to 1.152 every backend POST stopped matching a string-or-URL-only test,
+// fell through to the network and came back as the static server's 404
+// "Cannot POST /" - a page that boots, renders nothing and answers no button.
+// The commit that was deployed did not change; the CDN did. That is why the
+// browser smoke gate exists.
 const nativeFetch = globalThis.fetch.bind(globalThis);
 
 function isBackendUrl(input) {
-  if (typeof input !== "string" && !(input instanceof URL)) {
+  const href = isRequest(input) ? input.url
+    : (typeof input === "string" || input instanceof URL) ? String(input)
+    : null;
+  if (href === null) {
     return false;
   }
   try {
-    const target = new URL(String(input), window.location.href);
+    const target = new URL(href, window.location.href);
     return target.origin === window.location.origin
         && target.pathname === window.location.pathname;
   } catch {
@@ -86,7 +136,7 @@ function isBackendUrl(input) {
 }
 
 globalThis.fetch = (input, options) =>
-  isBackendUrl(input) ? backendFetch(String(input), options) : nativeFetch(input, options);
+  isBackendUrl(input) ? backendFetch(input, options) : nativeFetch(input, options);
 
 // ---- boot: GET the frontend from the transpiled backend, replace the document ----
 try {
