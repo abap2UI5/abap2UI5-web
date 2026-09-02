@@ -8,3 +8,4 @@ src
 playwright-report
 test-results
 media-out
+ci/abap_transpile.run.json

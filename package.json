@@ -11,7 +11,7 @@
     "build": "npm run build:downport && npm run build:transpile && rm -rf src",
     "build:downport": "rm -rf downport && cp -r src downport && node ci/patch_diss_oref.mjs && node abap2UI5/node/setup/patch-abaplint-downport.mjs node_modules/@abaplint/cli/build/cli.js && abaplint --fix ./ci/abaplint-downport.jsonc && npm run build:syfixes",
     "build:syfixes": "find . -type f -name '*.abap' -exec sed -i -e 's/ RAISE EXCEPTION TYPE cx_sy_itab_line_not_found/ ASSERT 1 = 0/g' {} + ",
-    "build:transpile": "rm -rf output && cp srv/*.abap downport && abap_transpile ./ci/abap_transpile.json && node ci/patch_init_order.mjs",
+    "build:transpile": "rm -rf output && cp srv/*.abap downport && node ci/merge_transpile_skips.mjs && abap_transpile ./ci/abap_transpile.run.json && node ci/patch_init_order.mjs",
     "build:web": "webpack --mode production",
     "test": "npm run build && npm run test:unit",
     "test:unit": "node output/index.mjs",
