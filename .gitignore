@@ -8,3 +8,5 @@ src
 playwright-report
 test-results
 media-out
+ci/abap_transpile.run.json
+ci/abaplint-downport.run.jsonc

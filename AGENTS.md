@@ -19,7 +19,7 @@ abap2UI5, not here.
 
 | Path | What it is |
 |---|---|
-| `ci/` | downport config + the two post-processing patches (below) |
+| `ci/` | transpile + downport config, the gates that keep them in lockstep with upstream, and the post-processing patches (below) |
 | `srv/` | Node-side entry points: express host, static build server, `ZCL_SICF` |
 | `app/` | browser entry: `web.mjs` (boot), `index.html`, `css/`, `pages/` |
 | `app/pages/` | README + 404 page copied into the deploy — the artifact repo's own files |
@@ -115,6 +115,53 @@ comment at the code; this list exists so nobody deletes one without reading it.
   red line in an otherwise green suite. That is how this was found — upstream
   added the cell binding on 2026-08-30 and this pipeline, which downports the
   same sources with a different abaplint install, had no shim to apply.
+
+- **`ci/merge_transpile_skips.mjs`, and the empty `skip` array it fills**
+  (`ci/abap_transpile.json`). A few abap2UI5 unit tests cannot pass under the
+  transpiler — they cover behaviour the NodeJS runtime does not reproduce
+  (a dynamic `describe_by_name`, microsecond timestamps, a field-symbol type
+  check the runtime does not enforce). abap2UI5 lists them in
+  `node/setup/abap_transpile.json`, in the same commit as the test.
+
+  This repository transpiles those same sources and kept a hand-written
+  SECOND COPY of that list. The copy is what broke the nightly on 2026-08-03
+  (issue #63, `test_tab_ref_gen`) and again on 2026-09-02 (issue #84,
+  `test_skip_sorted_table`): upstream added the test and its skip entry
+  together, the clone here picked up the test and knew nothing about the
+  entry, and the build went red on a test upstream had already declared
+  unrunnable. The second time the skip entry was 57 minutes old.
+
+  So the list is read from the clone `clone:core` already makes, never
+  copied — same reasoning as the abaplint downport shim above. The checked-in
+  `skip` array holds only entries upstream does NOT have; it is empty today
+  and an empty array is the correct state, not an oversight. The one entry it
+  used to carry alone — `ltcl_parser_test->parse_error`, noted "NodeJS 20 does
+  not set position of parsing error" — was stale: the pipeline runs Node 22,
+  the test passes, and skipping it had been hiding a green test for as long as
+  nobody re-read the note.
+
+  A missing or reshaped upstream list fails the build with a message naming
+  the path, because a silent fall back to the local half would be the drift
+  again, only quieter.
+
+- **`ci/merge_downport_config.mjs`, and the near-empty
+  `ci/abaplint-downport.jsonc` it completes.** Which abaplint rules run
+  alongside `downport`, and which syntax version they judge against, is a fact
+  about abap2UI5, not about this pipeline: the downport result here has to
+  pass the same check as upstream's source. That is the same rule the
+  `@abaplint/cli` pin follows under "Pins", and `ci/check-abaplint-pin.mjs`
+  already enforces the version half of it.
+
+  The rules half was a hand-written copy of upstream's
+  `.github/abaplint/abap_702.jsonc` — and it had already drifted, unnoticed:
+  upstream runs `xml_bom`, the copy did not. Nothing would ever have said so.
+
+  So rules and syntax are read from the clone. The checked-in file keeps only
+  what is genuinely this pipeline's — `global.files` and the dependency
+  folder, whose paths are relative to `ci/` and mean nothing upstream — plus a
+  `rules` object for local OVERRIDES, which is empty and correct that way. A
+  moved or reshaped upstream config fails the build with the path in the
+  message, for the same reason as the skip list above.
 
 - **`ci/patch_init_order.mjs`**. The transpiler emits static imports of async
   modules; ES only guarantees they *start* in order, not that each finishes
