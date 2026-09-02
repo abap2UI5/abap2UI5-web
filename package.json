@@ -9,7 +9,7 @@
     "clone:core": "rm -rf abap2UI5 && git clone --depth=1 https://github.com/abap2UI5/abap2UI5 && cp -r abap2UI5/src src && rm -rf src/99 && mkdir -p src/99 && cp abap2UI5/src/99/package.devc.xml abap2UI5/src/99/z2ui5_if_exit.intf.abap abap2UI5/src/99/z2ui5_if_exit.intf.xml src/99/",
     "clone:samples": "rm -rf abap2UI5-samples && git clone --depth=1 https://github.com/abap2UI5/samples abap2UI5-samples && mkdir -p src/samples && cp -r abap2UI5-samples/src/. src/samples",
     "build": "npm run build:downport && npm run build:transpile && rm -rf src",
-    "build:downport": "rm -rf downport && cp -r src downport && node ci/patch_diss_oref.mjs && node abap2UI5/node/setup/patch-abaplint-downport.mjs node_modules/@abaplint/cli/build/cli.js && abaplint --fix ./ci/abaplint-downport.jsonc && npm run build:syfixes",
+    "build:downport": "rm -rf downport && cp -r src downport && node ci/patch_diss_oref.mjs && node abap2UI5/node/setup/patch-abaplint-downport.mjs node_modules/@abaplint/cli/build/cli.js && node ci/merge_downport_config.mjs && abaplint --fix ./ci/abaplint-downport.run.jsonc && npm run build:syfixes",
     "build:syfixes": "find . -type f -name '*.abap' -exec sed -i -e 's/ RAISE EXCEPTION TYPE cx_sy_itab_line_not_found/ ASSERT 1 = 0/g' {} + ",
     "build:transpile": "rm -rf output && cp srv/*.abap downport && node ci/merge_transpile_skips.mjs && abap_transpile ./ci/abap_transpile.run.json && node ci/patch_init_order.mjs",
     "build:web": "webpack --mode production",

@@ -144,6 +144,25 @@ comment at the code; this list exists so nobody deletes one without reading it.
   the path, because a silent fall back to the local half would be the drift
   again, only quieter.
 
+- **`ci/merge_downport_config.mjs`, and the near-empty
+  `ci/abaplint-downport.jsonc` it completes.** Which abaplint rules run
+  alongside `downport`, and which syntax version they judge against, is a fact
+  about abap2UI5, not about this pipeline: the downport result here has to
+  pass the same check as upstream's source. That is the same rule the
+  `@abaplint/cli` pin follows under "Pins", and `ci/check-abaplint-pin.mjs`
+  already enforces the version half of it.
+
+  The rules half was a hand-written copy of upstream's
+  `.github/abaplint/abap_702.jsonc` — and it had already drifted, unnoticed:
+  upstream runs `xml_bom`, the copy did not. Nothing would ever have said so.
+
+  So rules and syntax are read from the clone. The checked-in file keeps only
+  what is genuinely this pipeline's — `global.files` and the dependency
+  folder, whose paths are relative to `ci/` and mean nothing upstream — plus a
+  `rules` object for local OVERRIDES, which is empty and correct that way. A
+  moved or reshaped upstream config fails the build with the path in the
+  message, for the same reason as the skip list above.
+
 - **`ci/patch_init_order.mjs`**. The transpiler emits static imports of async
   modules; ES only guarantees they *start* in order, not that each finishes
   before the next starts. Cross-class references made during
